@@ -77,7 +77,7 @@ int AlphaInput(const char* a, int LowerBound, int UpperBound)
 
 //最小堆:
 
-const static int DEFAULTSIZE = 10;
+const static int DEFAULTSIZE = 100;
 
 template<typename E>
 class MinHeap {
@@ -192,251 +192,157 @@ void MinHeap<E>::makeEmpty() {
 	}
 }
 
-//普通二叉树
-template<typename T>
-struct tree_node {
-	T content;
-	tree_node<T>* pre = NULL;
-	tree_node<T>* rlink = NULL;
-	tree_node<T>* llink = NULL;
-	tree_node(T cpy) {
-		content = cpy;
-		tree_node<T>* pre = NULL;
-		tree_node<T>* rlink = NULL;
-		tree_node<T>* llink = NULL;
-	}
-	tree_node() {
-		tree_node<T>* pre = NULL;
-		tree_node<T>* rlink = NULL;
-		tree_node<T>* llink = NULL;
-	}
-};
 
-
-
-
-template<typename T>
-class Tree_normal {
-protected:
-	void del(const tree_node<T>* now);
+//暂存类
+class heapnode {
 public:
-	tree_node<T>* head;
-	Tree_normal() { head = new tree_node<T>; }
-	Tree_normal(T ancestor) { head = new tree_node<T>; head->content = ancestor; }
-	~Tree_normal();
-	tree_node<T>* find(tree_node<T>* now, const T member);
-	/*把member加到first的下级
-		pos:pos为1：左边
-			pos为2：右边
-	*/
-	bool add(const tree_node<T>* first, const T member, int pos = 1);
-	/*
-		把child节点以及其之下的所有节点加到first的下级
-		pos表示位置:左儿子(1)与右儿子(2)
-		成功返回0
-	*/
-	//bool add(const tree_node<T>* first, tree_node<T>* child, int pos = 1);
+	int weight = 0;
+	int isyezi = 0;
+	heapnode* left = NULL;
+	heapnode* right = NULL;
+	void del(heapnode* now) {
+		if (!now)return;
+		if (now->left)del(now->left);
+		if (now->right)del(now->right);
+	}
+	~heapnode() {
+		del(this);
+	}
+	heapnode() {
+		weight = 0;
+		isyezi = 0;
+		left = NULL;
+		right = NULL;
+	}
 
-	//把first改为member
-	void change(const tree_node<T>* first, const T member);
-	/*移除节点及后续节点
-	*/
-	void remove(tree_node<T>*& member);
+	void nodecpy(const heapnode* source) {
+		if (!source)return;
+		weight = source->weight;
+		isyezi = source->isyezi;
+		if (source->left) {
+			left = new heapnode;
+			left->nodecpy(source->left);
+		}
+		if (source->right) {
+			right = new heapnode;
+			right->nodecpy(source->right);
+		}
+		return;
 
-	void previsit(const tree_node<T>* now, void bianli(const T* i));
-	void midvisit(const tree_node<T>* now, void bianli(const T* i));
-	void aftvisit(const tree_node<T>* now, void bianli(const T* i));
+	}
+	heapnode(heapnode& x) {
+		this->nodecpy(&x);
+	}
+
+	heapnode& operator=(const heapnode& x) {
+		this->nodecpy(&x);
+		return *this;
+	}
+
+
+	void static_display(const heapnode* source,string info) {
+		if (source->isyezi == 1) {
+			cout << source->weight << " " << info << endl;
+			return;
+		}
+		if (source->left) {
+			static_display(source->left, info + '0');
+		}
+		if (source->right) {
+			static_display(source->right, info + '1');
+		}
+		return;
+	}
+
+	void display() {
+		
+		static_display(this, string(""));
+	}
+
+	friend bool operator >=(const heapnode a, const heapnode b) {
+		return a.weight >= b.weight;
+	}
+	friend bool operator <=(const heapnode a, const heapnode b) {
+		return a.weight <= b.weight;
+	}
+	friend bool operator >(const heapnode a, const heapnode b) {
+		return a.weight > b.weight;
+	}
+	friend bool operator <(const heapnode a, const heapnode b) {
+		return a.weight < b.weight;
+	}
+	friend bool operator ==(const heapnode a, const heapnode b) {
+		return a.weight >= b.weight;
+	}
+	friend bool operator !=(const heapnode a, const heapnode b) {
+		return a.weight >= b.weight;
+	}
 };
 
-
-/*
-	从now指针所指的结点开始往下递归删除
-*/
-template<typename T>
-void Tree_normal<T>::del(const tree_node<T>* now)
-{
-	if (!now)return;//now指针为空
-	//if ((!now->rlink) && (!now->llink)) {//两个子节点均为空
-	//	delete now;
-	//	return;
-	//}
-	if (now->llink) {
-		del(now->llink);
-	}
-	if (now->rlink) {
-		del(now->rlink);
-	}
-	delete now;
-}
-
-
-/*
-	从now指针所指的结点开始往下遍历，找到值为member的节点的指针，并返回指针
-*/
-template<typename T>
-tree_node<T>* Tree_normal<T>::find(tree_node<T>* now, const T member)
-{
-	if (now->content == member)
-		return now;
-	if ((!now->llink) && (!now->rlink)) {
-		return NULL;
-	}
-	tree_node<T>* ret;
-	if (now->llink)
-		if (ret = find(now->llink, member))
-			return ret;
-	if (now->rlink)
-		if (ret = find(now->rlink, member))
-			return ret;
-	return NULL;
-}
-
-
-
-template<typename T>
-bool Tree_normal<T>::add(const tree_node<T>* first, const T member, int pos) {
-	tree_node<T>* fa = (tree_node<T>*)first;
-	switch (pos) {
-	case 1:
-		if (fa->llink)return 1;
-		fa->llink = new tree_node<T>;
-		fa->llink->content = member;
-		fa->llink->pre = fa;
-		break;
-	default:
-		if (fa->rlink)return 1;
-		fa->rlink = new tree_node<T>;
-		fa->rlink->content = member;
-		fa->rlink->pre = fa;
-		break;
-	}
-
-
-	return 0;
-}
-
-
-
-
-template<typename T>
-void Tree_normal<T>::change(const tree_node<T>* Father, const T member) {
-	tree_node<T>* fa = (tree_node<T>*)Father;//找到值为Father的指针
-	fa->content = member;
-	return;
-}
-
-
-
-template<typename T>
-void Tree_normal<T>::remove(tree_node<T>*& Father) {
-	//tree_node<T>* fa =(tree_node<T>*) Father;//找到值为Father的指针
-	del(Father);
-	Father = NULL;
-}
-
-template<typename T>
-Tree_normal<T>::~Tree_normal() {
-	del(head);
-	head = NULL;
-}
-
-template<typename T>
-void Tree_normal<T>::previsit(const tree_node<T>* now, void bianli(const T* i)) {
-	bianli(&(now->content));
-	if (now->llink)previsit(now->llink, bianli);
-	if (now->rlink)previsit(now->rlink, bianli);
-}
-
-template<typename T>
-void Tree_normal<T>::midvisit(const tree_node<T>* now, void bianli(const T* i)) {
-	if (now->llink)midvisit(now->llink, bianli);
-	bianli(&(now->content));
-	if (now->rlink)midvisit(now->rlink, bianli);
-}
-
-template<typename T>
-void Tree_normal<T>::aftvisit(const tree_node<T>* now, void bianli(const T* i)) {
-	if (now->llink)aftvisit(now->llink, bianli);
-	if (now->rlink)aftvisit(now->rlink, bianli);
-	bianli(&(now->content));
-}
-
-//暂存结构体
-struct heapnode {
-	int sum;
-	bool isYezi;
-	string TreeValue ;
-	int rank;
-	heapnode() { sum = 0; rank = 0; isYezi = 0; TreeValue =""; }
-	heapnode(int Rank,int Sum) { sum =Sum; isYezi = 1; TreeValue = ""; rank = Rank; }
-	bool operator >(heapnode& x) { return sum > x.sum; };
-	bool operator ==(heapnode& x) { return sum == x.sum; };
-	bool operator <(heapnode& x) { return sum < x.sum; };
-	bool operator >=(heapnode& x) { return sum >= x.sum; };
-	bool operator <=(heapnode& x) { return sum <= x.sum; };
-	bool operator !=(heapnode& x) { return sum != x.sum; };
-
-};
-
-
-
-//树的遍历函数
-void bianli(const heapnode* opt) {
-
-	if (opt->isYezi == 1) {
-		cout << opt->rank << " " << opt->TreeValue << endl;
-	}
-
-
-}
 
 
 
 //主函数:
 
 int main(int argc, char* argv[]) {
-
-	//首先获取节点
-	int nodes,*Array;
-	nodes = NumberInput("请输入节点个数(必须是正整数),小于100:", 1, 100);
-	Array = new int[nodes];
-	cout << ("请输入节点(以空格分隔):");
-	string tips ;
+	int nodes;
+	string tips;
 	stringstream tipsbuffer;
-	//接下来开始构建树
-	MinHeap<heapnode> myheap(nodes);
-	heapnode last;
-	//获取节点值
+	cout << ("请输入节点个数(必须是正整数):");
+	nodes = NumberInput("请输入节点个数(必须是正整数),小于100:", 1, 100);
+	int* head = new int[nodes];
+	heapnode tmp;
+	MinHeap<heapnode> MyHeap;
+	cout << "输入节点" << endl;
 	for (int i = 0; i < nodes; i++) {
 		tipsbuffer.str("");
-		tipsbuffer << "请输入第"<<i<<"个节点的节点值";
+		tipsbuffer.clear();
+		tips.assign("");
+		tipsbuffer << "请输入第";
+		tipsbuffer << i;
+		tipsbuffer << "个节点的节点值";
 		tipsbuffer >> tips;
-		Array[i] = NumberInput(tips.c_str(), 1, INT_MAX);
-		heapnode tmp(i, Array[i]);
-		myheap.insert(tmp);
+		head[i] = NumberInput(tips.c_str(), 1, INT_MAX);
+		tmp.weight = head[i];
+		tmp.isyezi = 1;
+		MyHeap.insert(tmp);
 	}
 
-	//开始构建
-	Tree_normal<heapnode> hoffmanTree;
-	while (true) {
 
-		heapnode h1,h2;
-		myheap.removeMin(h1);
-		myheap.removeMin(h2);
-		heapnode h3;
-		h3.sum = h1.sum + h2.sum;
-		h1.TreeValue = h1.TreeValue + "0";
-		h2.TreeValue = h2.TreeValue + "1";
-		if (myheap.isEmpty()) {
-			last = h3;
+	do {
+		heapnode tmp_a, tmp_b;
+		MyHeap.removeMin(tmp_a);
+		if (MyHeap.isEmpty() == true) {
+			tmp = tmp_a;
 			break;
 		}
-		myheap.insert(h3);
-	}
+		MyHeap.removeMin(tmp_b);
 
-	//现在输出树
+		tmp.weight = tmp_a.weight + tmp_b.weight;
+		tmp.isyezi = 0;
+		tmp.left = new heapnode;
+		tmp.right = new heapnode;
+		*tmp.left = tmp_a;
+		*tmp.right = tmp_b;
+		MyHeap.insert(tmp);
 
-	delete[] Array;
+		delete tmp.left;
+		delete tmp.right;
+
+	} while (!MyHeap.isEmpty());
+
+
+
+	cout << endl;
+	tmp.display();
+
+	delete[] head;
+
+	system("pause");
+	return 0;
 }
+
+
+
 
 
