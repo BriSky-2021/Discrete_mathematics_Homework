@@ -176,28 +176,35 @@ int main() {
 
 	cout << "当前矩阵为" << endl;
 	MyMatrix.display();
-	cout<<("输入对应序号选择算法\nl:自反闭包\n2:传递闭包\n3:对称闭包\n4:退出\n");
-	int whattodo;
-	cin >> whattodo;
-	switch (whattodo)
-	{
-	case 1:
-		reflexive(&MyMatrix);
-		break;
-	case 2:
-		transfer(&MyMatrix);
-		break;
-	case 3:
-		symmetry(&MyMatrix);
-		
-		break;
-	default:
-		return 1;
-		break;
-	}
+	matrix mycpy=MyMatrix;
+	while (true) {
+		MyMatrix = mycpy;
+		cout << ("输入对应序号选择算法\nl:自反闭包\n2:传递闭包\n3:对称闭包\n4:退出\n");
+		int whattodo;
+		cin >> whattodo;
+		switch (whattodo)
+		{
+		case 1:
+			reflexive(&MyMatrix);
+			break;
+		case 2:
+			transfer(&MyMatrix);
+			break;
+		case 3:
+			symmetry(&MyMatrix);
 
-	cout << "现在为" << endl;
-	MyMatrix.display();
+			break;
+		default:
+			cout << "欢迎下次使用" << endl;
+			system("pause");
+			return 1;
+			break;
+		}
+
+		cout << "现在为" << endl;
+		MyMatrix.display();
+	}
+	
 
 	return 0;
 }

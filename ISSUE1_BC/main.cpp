@@ -56,7 +56,7 @@ string operateString(const string &target) {
 				string replaceString;
 				switch (characterGet) {
 				case'!':
-					characterGet = '\0';
+					characterGet = NULL;
 					break;
 				case'0':
 					characterGet = '1';
@@ -69,7 +69,10 @@ string operateString(const string &target) {
 					break;
 				}
 				//characterGet = ('1' == characterGet) ? '0' : '1';
-				target_cpy.replace(characterPos, 2, string("")+characterGet);
+				if(characterGet)
+					target_cpy.replace(characterPos, 2, string("")+characterGet);
+				else
+					target_cpy.replace(characterPos, 2, string(""));
 				if (IS_TEST)
 					cout << "Ìæ»»ºóÎª" << target_cpy << endl;
 				continue;
